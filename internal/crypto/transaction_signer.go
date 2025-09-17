@@ -11,7 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/katuyo/goals/internal/model"
+	"github.com/featx/keys-gin/internal/model"
 )
 
 // TransactionSigner 交易签名器接口

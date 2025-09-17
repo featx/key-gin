@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/katuyo/goals/internal/service"
+	"github.com/featx/keys-gin/internal/service"
 )
 
 // KeyHandler 密钥处理器

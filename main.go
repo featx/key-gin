@@ -11,9 +11,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/katuyo/goals/internal/config"
-	"github.com/katuyo/goals/internal/db"
-	"github.com/katuyo/goals/internal/pkg/injector"
+	"github.com/featx/keys-gin/internal/config"
+	"github.com/featx/keys-gin/internal/db"
+	"github.com/featx/keys-gin/internal/pkg/injector"
 )
 
 func main() {

@@ -9,9 +9,9 @@ package injector
 import (
 	github.com/gin-gonic/gin
 	xormio "xorm.io/xorm"
-	github.com/katuyo/goals/internal/db
-	github.com/katuyo/goals/internal/handler
-	github.com/katuyo/goals/internal/service
+	github.com/featx/keys-gin/internal/db
+	github.com/featx/keys-gin/internal/handler
+	github.com/featx/keys-gin/internal/service
 )
 
 // Injectors from wire.go:

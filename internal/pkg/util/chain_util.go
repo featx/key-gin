@@ -1,6 +1,6 @@
 package util
 
-import "github.com/katuyo/goals/internal/model"
+import "github.com/featx/keys-gin/internal/model"
 
 // GetCurveAndEncoding 根据链类型获取对应的曲线类型和编码方式
 func GetCurveAndEncoding(chainType string) (string, string) {

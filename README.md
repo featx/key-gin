@@ -26,8 +26,7 @@
 ## 项目结构
 
 ```
-├── cmd/                  # 应用程序入口
-│   └── signmachine/      # 签名机主程序
+
 ├── internal/             # 内部包
 │   ├── config/           # 配置管理
 │   ├── crypto/           # 密码学相关功能
@@ -39,6 +38,7 @@
 ├── data/                 # 数据库文件（运行时生成）
 ├── logs/                 # 日志文件（运行时生成）
 ├── go.mod                # Go模块定义
+├── main.go               # 签名机主程序
 └── README.md             # 项目说明
 ```
 
@@ -70,7 +70,7 @@
 
 ```bash
 # 确保在项目根目录下
-cd c:\Users\nuc\env\src\github.com\katuyo\goals
+cd ~\github.com\featx\keys-gin
 # 安装依赖
 go mod tidy
 ```
@@ -79,7 +79,7 @@ go mod tidy
 
 ```bash
 # 在项目根目录下运行
-go run cmd/signmachine/main.go
+go run main.go
 ```
 
 ### 3. API接口

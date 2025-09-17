@@ -9,7 +9,7 @@ import (
 
 	"github.com/btcsuite/btcd/btcec"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/katuyo/goals/internal/model"
+	"github.com/featx/keys-gin/internal/model"
 )
 
 // KeyGenerator 密钥生成器接口

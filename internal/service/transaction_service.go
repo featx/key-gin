@@ -6,9 +6,9 @@ import (
 	"time"
 
 	xormio "xorm.io/xorm"
-	"github.com/katuyo/goals/internal/crypto"
-	"github.com/katuyo/goals/internal/db"
-	"github.com/katuyo/goals/internal/model"
+	"github.com/featx/keys-gin/internal/crypto"
+	"github.com/featx/keys-gin/internal/db"
+	"github.com/featx/keys-gin/internal/model"
 )
 
 // TransactionService 交易服务

@@ -1,0 +1,47 @@
+# 忽略Go构建产物
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# 忽略测试文件
+*_test.go
+*.test
+
+# 忽略IDE配置
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 忽略日志和数据文件
+logs/
+data/
+
+# 忽略临时文件
+*.tmp
+*.temp
+.cache/
+
+# 忽略操作系统文件
+.DS_Store
+Thumbs.db
+
+# 忽略环境变量文件
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# 忽略Docker相关文件（除了Dockerfile本身）
+.dockerignore
+
+# 忽略文档
+*.md
+README
+
+# 忽略配置文件示例
+config/*.example

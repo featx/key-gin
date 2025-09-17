@@ -6,9 +6,9 @@ package injector
 import (
 	github.com/google/wire
 	github.com/gin-gonic/gin
-	github.com/katuyo/goals/internal/db
-	github.com/katuyo/goals/internal/handler
-	github.com/katuyo/goals/internal/service
+	github.com/featx/keys-gin/internal/db
+	github.com/featx/keys-gin/internal/handler
+	github.com/featx/keys-gin/internal/service
 )
 
 // InitializeApp 初始化应用程序，提供依赖注入

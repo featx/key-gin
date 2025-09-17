@@ -8,8 +8,8 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/mattn/go-sqlite3"
 	"xorm.io/xorm"
-	"github.com/katuyo/goals/internal/config"
-	"github.com/katuyo/goals/internal/model"
+	"github.com/featx/keys-gin/internal/config"
+	"github.com/featx/keys-gin/internal/model"
 )
 
 var (

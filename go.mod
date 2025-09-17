@@ -1,4 +1,4 @@
-module github.com/katuyo/goals
+module github.com/featx/keys-gin
 
 go 1.24
 
