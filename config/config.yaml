@@ -1,0 +1,26 @@
+server:
+  port: 8080
+  host: "0.0.0.0"
+
+# 数据库配置
+database:
+  driver: "mysql"
+  source: "root:password@tcp(localhost:3306)/signmachine?charset=utf8mb4&parseTime=True&loc=Local"
+  show_sql: true
+  max_open_conns: 10
+  max_idle_conns: 5
+  conn_max_lifetime: "30m"
+
+# 加密配置
+crypto:
+  key_derivation: "scrypt"
+  iterations: 262144
+  salt_length: 32
+  key_length: 32
+  aes_gcm_nonce_length: 12
+
+# 日志配置
+logging:
+  level: "info"
+  format: "text"
+  file: "./logs/signmachine.log"
