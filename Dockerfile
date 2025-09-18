@@ -1,6 +1,13 @@
 # 构建阶段
 FROM golang:1.24-alpine AS builder
 
+# 设置Go代理环境变量（加速国内构建）
+ENV GOPROXY=https://goproxy.cn,direct
+ENV GOSUMDB=sum.golang.google.cn
+
+# 安装必要的系统依赖
+RUN apk --no-cache add git
+
 # 设置工作目录
 WORKDIR /app
 
@@ -8,8 +15,14 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 
+# 下载wire工具
+RUN go install github.com/google/wire/cmd/wire@latest
+
 # 复制项目代码
 COPY . .
+
+# 运行wire命令生成依赖注入代码
+RUN cd internal/pkg/injector && wire
 
 # 构建应用，禁用CGO以创建静态链接的二进制文件
 RUN CGO_ENABLED=0 GOOS=linux go build -o keys-gin main.go

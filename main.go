@@ -11,20 +11,26 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/featx/keys-gin/internal/config"
-	"github.com/featx/keys-gin/internal/db"
-	"github.com/featx/keys-gin/internal/pkg/injector"
+	"github.com/featx/keys-gin/web/config"
+	"github.com/featx/keys-gin/web/db"
 )
 
 func main() {
 	// 初始化配置
-	configPath := filepath.Join("..", "..", "config", "config.yaml")
+	configPath := filepath.Join("config", "config.yaml")
 	if err := config.Init(configPath); err != nil {
 		log.Fatalf("Failed to initialize config: %v", err)
 	}
 
 	// 初始化数据库
-	if err := db.Init(); err != nil {
+	if err := db.Init(db.DatabaseConfig{
+		Driver:          config.Config.Database.Driver,
+		Source:          config.Config.Database.Source,
+		ShowSQL:         config.Config.Database.ShowSQL,
+		MaxOpenConns:    config.Config.Database.MaxOpenConns,
+		MaxIdleConns:    config.Config.Database.MaxIdleConns,
+		ConnMaxLifetime: config.Config.Database.ConnMaxLifetime,
+	}); err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
 	defer func() {
@@ -34,7 +40,7 @@ func main() {
 	}()
 
 	// 使用依赖注入初始化路由器和所有组件
-	router, err := injector.InitializeApp()
+	router, err := config.InitializeApp()
 	if err != nil {
 		log.Fatalf("Failed to initialize app: %v", err)
 	}

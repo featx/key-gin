@@ -16,7 +16,7 @@
 - **Go**: 主要开发语言
 - **Gin**: Web框架
 - **XORM**: ORM框架 (已迁移至 xorm.io/xorm)
-- **MySQL**: 主数据库
+- **MySQL/SQLite**: 支持MySQL或SQLite数据库
 - **Viper**: 配置管理
 - **Wire**: 依赖注入工具
 - **BTCD**: 比特币相关功能支持
@@ -27,18 +27,21 @@
 
 ```
 
-├── internal/             # 内部包
-│   ├── config/           # 配置管理
+├── config/               # 配置文件
+├── lib/                  # 通用库
 │   ├── crypto/           # 密码学相关功能
+│   └── keystore/         # 密钥存储实现
+├── logs/                 # 日志文件（运行时生成）
+├── web/                  # Web应用相关代码
+│   ├── config/           # 配置管理
 │   ├── db/               # 数据库操作
 │   ├── handler/          # HTTP请求处理
 │   ├── model/            # 数据模型
-│   └── service/          # 业务逻辑
-├── config/               # 配置文件
-├── data/                 # 数据库文件（运行时生成）
-├── logs/                 # 日志文件（运行时生成）
+│   ├── service/          # 业务逻辑
+│   └── util/             # 工具函数
 ├── go.mod                # Go模块定义
-├── main.go               # 签名机主程序
+├── go.sum                # 依赖版本锁定
+├── main.go               # 应用主程序入口
 └── README.md             # 项目说明
 ```
 
@@ -46,7 +49,7 @@
 
 本项目使用Google Wire作为编译时依赖注入工具，实现了组件间的解耦。依赖注入架构如下：
 
-1. **数据库引擎**：由`internal/db`包提供，作为底层依赖
+1. **数据库引擎**：由`web/db`包提供，作为底层依赖
 2. **服务层**：
    - `KeyService`依赖于数据库引擎
    - `TransactionService`依赖于数据库引擎和`KeyService`
@@ -55,14 +58,14 @@
    - `TransactionHandler`依赖于`TransactionService`
 4. **路由器**：依赖于所有处理器
 
-所有依赖关系在`internal/pkg/injector`包中定义和管理，通过`injector.InitializeApp()`方法统一初始化整个应用。
+所有依赖关系在`web/config`包中定义和管理，通过`config.InitializeApp()`方法统一初始化整个应用。
 
 ## 快速开始
 
 ### 环境要求
 
 - Go 1.24或更高版本
-- SQLite
+- MySQL或SQLite数据库（可通过配置切换）
 
 ### 安装步骤
 
@@ -70,7 +73,7 @@
 
 ```bash
 # 确保在项目根目录下
-cd ~\github.com\featx\keys-gin
+cd /path/to/keys-gin
 # 安装依赖
 go mod tidy
 ```
@@ -121,6 +124,8 @@ go run main.go
 
 - `server`: 服务器配置（端口、主机）
 - `database`: 数据库配置（驱动、连接字符串等）
+  - 默认配置为MySQL：`driver: "mysql"`, `source: "root:password@tcp(localhost:3306)/key-gin?charset=utf8mb4&parseTime=True&loc=Local"`
+  - 如需使用SQLite，可修改为：`driver: "sqlite3"`, `source: "./key-gin.db"`
 - `crypto`: 加密配置（密钥派生、迭代次数等）
 - `logging`: 日志配置（级别、格式、文件路径等）
 
@@ -130,6 +135,7 @@ go run main.go
 - 在生产环境中，应考虑使用更安全的方式存储私钥，如硬件安全模块(HSM)或密钥管理服务(KMS)
 - 建议启用HTTPS以保护API通信安全
 - 比特币地址生成和交易签名逻辑进行了简化，在实际应用中需要使用完整的比特币SDK
+- 如果使用SQLite数据库，需要确保CGO已启用（`CGO_ENABLED=1`）
 
 ## License
 
