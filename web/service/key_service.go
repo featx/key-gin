@@ -4,32 +4,32 @@ import (
 	"errors"
 	"fmt"
 
-	xormio "xorm.io/xorm"
 	"github.com/featx/keys-gin/lib/crypto"
 	"github.com/featx/keys-gin/lib/keystore"
 	"github.com/featx/keys-gin/web/model"
 	"github.com/featx/keys-gin/web/util"
+	"xorm.io/xorm"
 )
 
 // KeyService 密钥对服务
 type KeyService struct {
-	db       *xormio.Engine
+	db       *xorm.Engine
 	keyStore *keystore.Keystore
 }
 
 // NewKeyService 创建密钥服务
-func NewKeyService(dbEngine *xormio.Engine) (*KeyService, error) {
+func NewKeyService(dbEngine *xorm.Engine) (*KeyService, error) {
 	// 创建私钥存储管理器
 	keyStore, err := keystore.NewKeystore("./data/keystore")
 	if err != nil {
 		return nil, fmt.Errorf("failed to create keystore: %w", err)
 	}
-	
+
 	return &KeyService{
-		db:       dbEngine,
-		keyStore: keyStore,
-	},
-	 nil
+			db:       dbEngine,
+			keyStore: keyStore,
+		},
+		nil
 }
 
 // GenerateKeyPair 为用户生成指定链的密钥对
@@ -81,19 +81,19 @@ func (s *KeyService) checkExistingAddress(userID, chainType string) (*model.KeyP
 	// 如果地址已存在，返回对应的密钥对
 	if has {
 		var existingPublicKey model.PublicKey
-	has, err := s.db.Where("public_key = ?", existingAddress.PublicKey).Get(&existingPublicKey)
+		has, err := s.db.Where("public_key = ?", existingAddress.PublicKey).Get(&existingPublicKey)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get existing public key: %w", err)
 		}
 		if has {
 			return &model.KeyPair{
-				PublicKey: &existingPublicKey,
-				Address:   &existingAddress,
-			},
-			nil
+					PublicKey: &existingPublicKey,
+					Address:   &existingAddress,
+				},
+				nil
 		}
 	}
-	
+
 	return nil, nil
 }
 
@@ -104,39 +104,39 @@ func (s *KeyService) deriveKeyPairFromExisting(existingPublicKeys []model.Public
 	if err != nil {
 		return nil, fmt.Errorf("failed to create key generator: %w", err)
 	}
-	
+
 	// 选择第一个使用相同曲线的公钥
 	publicKey := existingPublicKeys[0].PublicKey
 	benchmarkChainType := existingPublicKeys[0].ChainType
-	
+
 	// 优先尝试直接从公钥生成新链类型的地址
 	addressValue, err := generator.PublicKeyToAddress(publicKey)
 	if err == nil {
 		// 获取基准链类型的私钥（用于保存）
-		privateKey, err := s.keyStore.GetUserPrivateKey(userID, benchmarkChainType)
-		if err != nil {
+		var privateKey string
+		if privateKey, err = s.keyStore.GetUserPrivateKey(userID, benchmarkChainType); err != nil {
 			// 如果获取私钥失败，回退到生成新密钥对
 			return s.generateNewKeyPair(userID, chainType, curve, encoding)
 		}
-		
+
 		// 保存新的公钥和地址到数据库
 		return s.saveDerivedKeyPair(userID, chainType, curve, encoding, publicKey, addressValue, privateKey)
 	}
-	
+
 	// 如果从公钥生成地址失败，回退到从私钥推导
 	privateKey, err := s.keyStore.GetUserPrivateKey(userID, benchmarkChainType)
 	if err != nil {
 		// 如果获取私钥失败，回退到生成新密钥对
 		return s.generateNewKeyPair(userID, chainType, curve, encoding)
 	}
-	
+
 	// 从现有私钥推导公钥和地址
 	addressValue, publicKeyValue, err := generator.DeriveKeyPairFromPrivateKey(privateKey)
 	if err != nil {
 		// 如果推导失败，回退到生成新密钥对
 		return s.generateNewKeyPair(userID, chainType, curve, encoding)
 	}
-	
+
 	// 保存新的公钥和地址到数据库
 	return s.saveDerivedKeyPair(userID, chainType, curve, encoding, publicKeyValue, addressValue, privateKey)
 }
@@ -260,7 +260,7 @@ func (s *KeyService) GetPrivateKey(addressValue string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to get private key: %w", err)
 	}
-	
+
 	return privateKey, nil
 }
 
@@ -276,7 +276,7 @@ func (s *KeyService) DeleteKeyPair(id int64) error {
 	}
 
 	// 删除私钥文件
-	if err := s.keyStore.DeletePrivateKey(keyPair.Address.Address); err != nil {
+	if err = s.keyStore.DeletePrivateKey(keyPair.Address.Address); err != nil {
 		return fmt.Errorf("failed to delete private key: %w", err)
 	}
 
