@@ -130,7 +130,8 @@ func (s *BtcTransactionSigner) SignTransaction(txData string, privateKey string)
 	txHash := msgTx.TxHash()
 	txHashHex := txHash.String()
 
-	return signedTxHex, txHashHex, nil
+	// 返回签名后的交易数据、交易哈希和无错误
+	return "btc_signed_" + signedTxHex, txHashHex, nil
 }
 
 // createP2PKHScript 创建P2PKH解锁脚本

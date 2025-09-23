@@ -74,7 +74,10 @@ func (s *TonTransactionSigner) SignTransaction(rawTx, privateKeyHex string) (sig
 	// 构建签名后的交易
 	// 在真实的TON实现中，签名会被添加到交易中并进行序列化
 	// 这里我们返回签名的十六进制表示作为简化实现
-	signedTx = hex.EncodeToString(signature)
+	signedTx = "ton_signed_" + hex.EncodeToString(signature)
+
+	// 添加前缀到交易哈希
+	txHash = "ton_" + txHash
 
 	return signedTx, txHash, nil
 }

@@ -38,10 +38,10 @@ func TestAdaTransactionSigner_SignTransaction(t *testing.T) {
 	// 执行签名
 	signedTx, txHash, err := signer.SignTransaction(string(rawTx), privateKeyHex)
 
-	// 验证结果
+	// 验证结果 - 更新为与新实现兼容的断言
 	assert.NoError(t, err)
 	assert.NotEmpty(t, signedTx)
 	assert.NotEmpty(t, txHash)
-	assert.Contains(t, signedTx, "ada_signed_")
-	assert.Contains(t, txHash, "ada_")
+	assert.Greater(t, len(signedTx), 100)  // 确保签名结果足够长
+	assert.Equal(t, 64, len(txHash))       // 双SHA256哈希应该是64个十六进制字符
 }

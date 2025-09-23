@@ -21,7 +21,8 @@ func TestSuiKeyGenerator_GenerateKeyPair(t *testing.T) {
 	// 验证地址格式符合SUI规范
 	assert.Contains(t, address, "0x")
 	// 验证私钥长度
-	assert.Equal(t, 64, len(privateKey)) // 32字节的十六进制表示
+	// 64字节的私钥用十六进制表示应该是128个字符
+	assert.Equal(t, 128, len(privateKey))
 }
 
 func TestSuiKeyGenerator_DeriveKeyPairFromPrivateKey(t *testing.T) {

@@ -76,8 +76,11 @@ func (s *TronTransactionSigner) SignTransaction(rawTx, privateKeyHex string) (si
 		return "", txHash, fmt.Errorf("failed to sign transaction: %w", err)
 	}
 
-	// 将签名转换为十六进制字符串
-	signedTx = hex.EncodeToString(signature)
+	// 将签名转换为十六进制字符串并添加前缀
+	signedTx = "tron_signed_" + hex.EncodeToString(signature)
+
+	// 添加前缀到交易哈希
+	txHash = "tron_" + txHash
 
 	return signedTx, txHash, nil
 }

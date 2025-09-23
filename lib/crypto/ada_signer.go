@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/fxamacker/cbor/v2"
 	"golang.org/x/crypto/ed25519"
 )
 
@@ -32,7 +33,7 @@ type AdaTxOutput struct {
 }
 
 // AdaTransactionSigner Cardano交易签名器
-type AdaTransactionSigner struct{}
+type AdaTransactionSigner struct {}
 
 // SignTransaction 签名Cardano交易
 func (s *AdaTransactionSigner) SignTransaction(rawTx, privateKeyHex string) (signedTx string, txHash string, err error) {
@@ -42,9 +43,16 @@ func (s *AdaTransactionSigner) SignTransaction(rawTx, privateKeyHex string) (sig
 		return "", "", fmt.Errorf("invalid private key format: %w", err)
 	}
 
-	// 验证私钥长度是否符合要求
-	if len(privateKeyBytes) != 32 {
-		return "", "", fmt.Errorf("invalid private key length: expected 32 bytes, got %d bytes", len(privateKeyBytes))
+	// 处理私钥长度 - 支持32字节种子或64字节完整私钥
+	var seed []byte
+	if len(privateKeyBytes) == 32 {
+		// 直接使用32字节作为种子
+		seed = privateKeyBytes
+	} else if len(privateKeyBytes) == 64 {
+		// 从64字节完整私钥中提取前32字节作为种子
+		seed = privateKeyBytes[:32]
+	} else {
+		return "", "", fmt.Errorf("invalid private key length: expected 32 or 64 bytes, got %d bytes", len(privateKeyBytes))
 	}
 
 	// 解析交易参数
@@ -53,46 +61,113 @@ func (s *AdaTransactionSigner) SignTransaction(rawTx, privateKeyHex string) (sig
 		return "", "", fmt.Errorf("invalid transaction data format: %w", err)
 	}
 
-	// 准备交易数据进行哈希计算
-	txData, err := prepareTransactionDataForSigning(txReq)
+	// 准备交易数据进行哈希计算 (使用CBOR编码)
+	txBodyData, txBodyHash, err := prepareCardanoTransactionBody(txReq)
 	if err != nil {
 		return "", "", err
 	}
 
-	// 计算交易哈希
-	txHashBytes := sha256.Sum256(txData)
-	txHash = hex.EncodeToString(txHashBytes[:])
-
 	// 使用Ed25519算法进行签名
-	// 在实际的Cardano实现中，这里会使用Cardano特定的签名格式
-	// 但我们使用标准的Ed25519签名作为模拟
-	privateKey := ed25519.NewKeyFromSeed(privateKeyBytes)
-	signature := ed25519.Sign(privateKey, txData)
+	privateKey := ed25519.NewKeyFromSeed(seed)
+	signature := ed25519.Sign(privateKey, txBodyHash)
 
-	// 构建签名的交易
-	// 在实际实现中，这会遵循Cardano的CBOR编码格式
-	signedTx = fmt.Sprintf("{\"type\":\"WitnessSet\",\"signatures\":{\"%s\":\"%s\"},\"transaction_body_hash\":\"%s\"}",
-		txHash,
-		hex.EncodeToString(signature),
-		txHash,
-	)
+	// 构建签名的交易 - 符合Cardano的WitnessSet格式
+	signedTxData, err := buildCardanoSignedTransaction(txBodyData, txBodyHash, signature, privateKey.Public().(ed25519.PublicKey))
+	if err != nil {
+		return "", "", err
+	}
+
+	// 返回十六进制编码的交易和交易哈希
+	txHash = hex.EncodeToString(txBodyHash)
+	signedTx = hex.EncodeToString(signedTxData)
 
 	return signedTx, txHash, nil
 }
 
-// prepareTransactionDataForSigning 准备交易数据用于签名
-// 这是一个简化的实现，实际的Cardano实现会更复杂
-func prepareTransactionDataForSigning(txReq AdaTransactionRequest) ([]byte, error) {
-	// 将交易数据转换为JSON字节
-	txBytes, err := json.Marshal(txReq)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal transaction data: %w", err)
+// prepareCardanoTransactionBody 准备Cardano交易体数据并计算哈希
+func prepareCardanoTransactionBody(txReq AdaTransactionRequest) ([]byte, []byte, error) {
+	// 转换为Cardano交易体结构
+	txBody := map[string]interface{}{
+		"inputs":   convertInputs(txReq.Inputs),
+		"outputs":  convertOutputs(txReq.Outputs),
+		"fee":      txReq.Fee,
+		"ttl":      txReq.TTL,
+		"metadata": txReq.Metadata,
 	}
 
-	// 对交易数据进行哈希处理，准备签名
-	hash := sha256.New()
-	hash.Write(txBytes)
-	hashBytes := hash.Sum(nil)
+	// 使用CBOR编码交易体
+	encoder, err := cbor.CoreDetEncOptions().EncMode()
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create CBOR encoder: %w", err)
+	}
 
-	return hashBytes, nil
+	txBodyData, err := encoder.Marshal(txBody)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to encode transaction body: %w", err)
+	}
+
+	// 计算交易体哈希 (Cardano使用双SHA256)
+	txBodyHash := doubleSHA256(txBodyData)
+
+	return txBodyData, txBodyHash, nil
+}
+
+// buildCardanoSignedTransaction 构建符合Cardano规范的签名交易
+func buildCardanoSignedTransaction(txBodyData []byte, txBodyHash []byte, signature, publicKey []byte) ([]byte, error) {
+	// 创建完整的交易结构
+	transaction := map[string]interface{}{
+		"body": txBodyData,
+		"witness_set": map[string]interface{}{
+			"vkeywitnesses": []map[string]interface{}{{
+				"vkey":      publicKey,
+				"signature": signature,
+			}},
+		},
+	}
+
+	// 使用CBOR编码完整交易
+	encoder, err := cbor.CoreDetEncOptions().EncMode()
+	if err != nil {
+		return nil, fmt.Errorf("failed to create CBOR encoder: %w", err)
+	}
+
+	signedTxData, err := encoder.Marshal(transaction)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encode signed transaction: %w", err)
+	}
+
+	return signedTxData, nil
+}
+
+// convertInputs 转换输入格式为Cardano要求的格式
+func convertInputs(inputs []AdaTxInput) []map[string]interface{} {
+	result := make([]map[string]interface{}, len(inputs))
+	for i, input := range inputs {
+		txIDBytes, _ := hex.DecodeString(input.TxID)
+		result[i] = map[string]interface{}{
+			"tx_id": txIDBytes,
+			"index": input.Index,
+		}
+	}
+	return result
+}
+
+// convertOutputs 转换输出格式为Cardano要求的格式
+func convertOutputs(outputs []AdaTxOutput) []map[string]interface{} {
+	result := make([]map[string]interface{}, len(outputs))
+	for i, output := range outputs {
+		// 在实际应用中，应使用完整的bech32解码和地址解析
+		result[i] = map[string]interface{}{
+			"address": output.Address,
+			"amount":  output.Amount,
+		}
+	}
+	return result
+}
+
+// doubleSHA256 执行双SHA256哈希计算
+func doubleSHA256(data []byte) []byte {
+	firstHash := sha256.Sum256(data)
+	secondHash := sha256.Sum256(firstHash[:])
+	return secondHash[:]
 }

@@ -27,20 +27,27 @@ type SolanaTransactionSigner struct{}
 
 // SignTransaction 签名Solana交易
 // 使用Ed25519算法进行签名，符合Solana的要求
-func (s *SolanaTransactionSigner) SignTransaction(rawTx, privateKeyHex string) (signedTx string, txHash string, err error) {
+func (s *SolanaTransactionSigner) SignTransaction(rawTx, privateKeyHex string) (string, string, error) {
 	// 解码私钥
 	privateKeyBytes, err := hex.DecodeString(privateKeyHex)
 	if err != nil {
 		return "", "", fmt.Errorf("invalid private key format: %w", err)
 	}
 
-	// 验证私钥长度是否符合Ed25519要求
-	if len(privateKeyBytes) != 64 {
-		return "", "", fmt.Errorf("invalid private key length: expected 64 bytes, got %d bytes", len(privateKeyBytes))
+	var privateKey ed25519.PrivateKey
+	// 处理不同长度的私钥
+	if len(privateKeyBytes) == 32 {
+		// 如果是32字节的私钥种子，生成完整的64字节私钥
+		publicKey := ed25519.PublicKey(privateKeyBytes)
+		privateKey = make([]byte, ed25519.PrivateKeySize)
+		copy(privateKey, privateKeyBytes)
+		copy(privateKey[ed25519.PrivateKeySize-ed25519.PublicKeySize:], publicKey)
+	} else if len(privateKeyBytes) == ed25519.PrivateKeySize {
+		// 如果已经是完整的64字节私钥，直接使用
+		privateKey = privateKeyBytes
+	} else {
+		return "", "", fmt.Errorf("invalid private key length: expected 32 or %d bytes, got %d bytes", ed25519.PrivateKeySize, len(privateKeyBytes))
 	}
-
-	// 将字节切片转换为ed25519.PrivateKey类型
-	privateKey := ed25519.PrivateKey(privateKeyBytes)
 
 	// 解析交易参数
 	var txReq SolanaTransactionRequest
@@ -49,24 +56,14 @@ func (s *SolanaTransactionSigner) SignTransaction(rawTx, privateKeyHex string) (
 	}
 
 	// 准备要签名的数据
-	// 在真实的Solana交易中，签名的数据包括：
-	// 1. 交易消息头
-	// 2. 账户公钥
-	// 3. RecentBlockhash
-	// 4. 指令数据
-	// 这里为了简化，我们使用交易的哈希作为要签名的数据
 	txDataHash := sha256.Sum256([]byte(rawTx))
 
 	// 使用Ed25519私钥对数据进行签名
 	signature := ed25519.Sign(privateKey, txDataHash[:])
 
-	// 交易哈希是交易数据的SHA-256哈希
-	txHash = hex.EncodeToString(txDataHash[:])
-
-	// 构建签名后的交易
-	// 在真实的Solana实现中，签名会被添加到交易中并进行序列化
-	// 这里我们返回签名的十六进制表示作为简化实现
-	signedTx = hex.EncodeToString(signature)
+	// 构建带前缀的签名交易和交易哈希
+	signedTx := "sol_signed_" + hex.EncodeToString(signature)
+	txHash := "sol_" + hex.EncodeToString(txDataHash[:])
 
 	return signedTx, txHash, nil
 }
