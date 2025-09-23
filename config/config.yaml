@@ -3,9 +3,21 @@ server:
   host: "0.0.0.0"
 
 # 数据库配置
+# 目前使用SQLite作为默认配置
+# 如需使用其他数据库，请取消对应注释并修改配置
+
 database:
-  driver: "mysql"
-  source: "root:password@tcp(localhost:3306)/key-gin?charset=utf8mb4&parseTime=True&loc=Local"
+  # MySQL配置（当前已注释）
+  # driver: "mysql"
+  # source: "root:password@tcp(localhost:3306)/key-gin?charset=utf8mb4&parseTime=True&loc=Local"
+  
+  # PostgreSQL配置（当前已注释）
+  # driver: "postgres"
+  # source: "host=localhost port=5432 user=postgres password=password dbname=key-gin sslmode=disable"
+  
+  # SQLite配置（当前启用）
+  driver: "sqlite3"
+  source: "./key-gin.db"
   show_sql: true
   max_open_conns: 10
   max_idle_conns: 5

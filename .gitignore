@@ -1,0 +1,74 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+keys-gin
+
+# Test binary, build with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Dependency directories (remove the comment below to include it)
+# vendor/
+
+# Build output directory
+build/
+tmp/
+
+# Logs
+logs/
+*.log
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS generated files
+Thumbs.db
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# Cache directories
+.cache/
+.go/pkg/
+
+# Wire generated files
+web/config/wire_gen.go
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# Package lock files (keep one based on your preference)
+# go.sum
+
+# Docker files
+Dockerfile.demo
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
