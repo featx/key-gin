@@ -43,6 +43,8 @@ func NewKeyGenerator(chainType string) (KeyGenerator, error) {
 		return &PolkadotKeyGenerator{}, nil
 	case model.ChainTypeTON:
 		return &TonKeyGenerator{}, nil
+	case model.ChainTypeAPTOS:
+		return &AptosKeyGenerator{}, nil
 	default:
 		return nil, errors.New("unsupported chain type")
 	}

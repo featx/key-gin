@@ -26,4 +26,6 @@ const (
 	ChainTypeBSC = "binance_smart_chain"
 	// ChainTypePolygon Polygon
 	ChainTypePolygon = "polygon"
+	// ChainTypeAPTOS Aptos
+	ChainTypeAPTOS = "aptos"
 )
